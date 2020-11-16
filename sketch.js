@@ -12,6 +12,7 @@ Basic Pitch Detection
 let audioContext;
 let mic;
 let pitch;
+let newVariable;
 
 function setup() {
   noCanvas();

@@ -26,19 +26,22 @@ let textCoordinates;
 
 // Osc variables
 let currentFreq;
-let osc, oscFreq, oscAmp, oscPlaying;
+let osc, oscFreq, oscAmp;
+let osc2, oscFreq2, oscAmp2;
+let osc3, oscFreq3, oscAmp3;
 
 
 function setup() {
   createCanvas(410, 320);
   textCoordinates = [width / 2, 30];
-  gameReset();
   audioContext = getAudioContext();
   mic = new p5.AudioIn();
   mic.start(startPitch);
   getAudioContext().suspend();
   osc = new p5.Oscillator('sine');
-  osc.start();
+  osc2 = new p5.Oscillator('sine');
+  osc3 = new p5.Oscillator('sine');
+  
 
 }
 
@@ -53,8 +56,9 @@ function modelLoaded() {
 
 function getPitch() {
   pitch.getPitch(function (err, frequency) {
+    currentFreq = frequency;
     if (frequency) {
-      currentFreq = frequency;
+      
       let midiNum = freqToMidi(frequency);
       currentNote = scale[midiNum % 12];
       select('#currentNote').html(currentNote);
@@ -65,6 +69,8 @@ function getPitch() {
 
 function draw() {
     osc.freq(currentFreq);
+    osc2.freq(currentFreq*3/2);
+    osc3.freq(currentFreq*5/4);
   background(240);
   // Goal Circle is Blue
   noStroke();
@@ -90,33 +96,15 @@ function draw() {
       width / 2 - 5,
       currentHeight + circleSize / 6
     );
-    // If target is hit
-    if (
-      dist(width / 2, currentHeight, width / 2, goalHeight) <
-      circleSize / 2
-    ) {
-      hit(goalHeight, scale[goalNote]);
-    }
   }
 }
 
-function gameReset() {
-  goalNote = round(random(0, scale.length - 1));
-  select('#target').html(scale[goalNote]);
-}
 
-function hit(goalHeight, note) {
-  noLoop();
-  background(240);
-  fill(138, 43, 226);
-  ellipse(width / 2, goalHeight, circleSize, circleSize);
-  fill(255);
-  text(note, width / 2, goalHeight + circleSize / 6);
-  fill(50);
-  select('#hit').html('Nice!');
-  gameReset();
-}
 
 function mousePressed() {
   userStartAudio();
+  osc.start();
+  osc2.start();
+  osc3.start();
+
 }

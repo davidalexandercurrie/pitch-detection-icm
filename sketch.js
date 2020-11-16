@@ -14,6 +14,8 @@ const voiceLow = 100;
 const voiceHigh = 500;
 let audioStream;
 
+console.log('hi');
+
 // Circle variables
 let circleSize = 42;
 const scale = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
@@ -30,7 +32,6 @@ let osc, oscFreq, oscAmp;
 let osc2, oscFreq2, oscAmp2;
 let osc3, oscFreq3, oscAmp3;
 
-
 function setup() {
   createCanvas(410, 320);
   textCoordinates = [width / 2, 30];
@@ -41,8 +42,6 @@ function setup() {
   osc = new p5.Oscillator('sine');
   osc2 = new p5.Oscillator('sine');
   osc3 = new p5.Oscillator('sine');
-  
-
 }
 
 function startPitch() {
@@ -58,7 +57,6 @@ function getPitch() {
   pitch.getPitch(function (err, frequency) {
     currentFreq = frequency;
     if (frequency) {
-      
       let midiNum = freqToMidi(frequency);
       currentNote = scale[midiNum % 12];
       select('#currentNote').html(currentNote);
@@ -68,9 +66,9 @@ function getPitch() {
 }
 
 function draw() {
-    osc.freq(currentFreq);
-    osc2.freq(currentFreq*3/2);
-    osc3.freq(currentFreq*5/4);
+  osc.freq(currentFreq);
+  osc2.freq((currentFreq * 3) / 2);
+  osc3.freq((currentFreq * 5) / 4);
   background(240);
   // Goal Circle is Blue
   noStroke();
@@ -99,12 +97,9 @@ function draw() {
   }
 }
 
-
-
 function mousePressed() {
   userStartAudio();
   osc.start();
   osc2.start();
   osc3.start();
-
 }

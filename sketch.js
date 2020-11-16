@@ -24,6 +24,11 @@ let currentNote = '';
 let currentText = '';
 let textCoordinates;
 
+// Osc variables
+let currentFreq;
+let osc, oscFreq, oscAmp, oscPlaying;
+
+
 function setup() {
   createCanvas(410, 320);
   textCoordinates = [width / 2, 30];
@@ -32,6 +37,9 @@ function setup() {
   mic = new p5.AudioIn();
   mic.start(startPitch);
   getAudioContext().suspend();
+  osc = new p5.Oscillator('sine');
+  osc.start();
+
 }
 
 function startPitch() {
@@ -46,6 +54,7 @@ function modelLoaded() {
 function getPitch() {
   pitch.getPitch(function (err, frequency) {
     if (frequency) {
+      currentFreq = frequency;
       let midiNum = freqToMidi(frequency);
       currentNote = scale[midiNum % 12];
       select('#currentNote').html(currentNote);
@@ -55,6 +64,7 @@ function getPitch() {
 }
 
 function draw() {
+    osc.freq(currentFreq);
   background(240);
   // Goal Circle is Blue
   noStroke();

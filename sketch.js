@@ -31,6 +31,7 @@ function setup() {
   audioContext = getAudioContext();
   mic = new p5.AudioIn();
   mic.start(startPitch);
+  getAudioContext().suspend();
 }
 
 function startPitch() {
@@ -104,4 +105,8 @@ function hit(goalHeight, note) {
   fill(50);
   select('#hit').html('Nice!');
   gameReset();
+}
+
+function mousePressed() {
+  userStartAudio();
 }

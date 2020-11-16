@@ -15,13 +15,13 @@ const voiceHigh = 500;
 let audioStream;
 
 // Circle variables
-const circleSize = 42;
+let circleSize = 42;
 const scale = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 
 // Text variables
 let goalNote = 0;
 let currentNote = '';
-const currentText = '';
+let currentText = '';
 let textCoordinates;
 
 function setup() {
@@ -43,14 +43,14 @@ function modelLoaded() {
 }
 
 function getPitch() {
-  pitch.getPitch(function(err, frequency) {
+  pitch.getPitch(function (err, frequency) {
     if (frequency) {
-      const midiNum = freqToMidi(frequency);
+      let midiNum = freqToMidi(frequency);
       currentNote = scale[midiNum % 12];
       select('#currentNote').html(currentNote);
     }
     getPitch();
-  })
+  });
 }
 
 function draw() {
@@ -61,16 +61,29 @@ function draw() {
   goalHeight = map(goalNote, 0, scale.length - 1, 0, height);
   ellipse(width / 2, goalHeight, circleSize, circleSize);
   fill(255);
-  text(scale[goalNote], (width / 2) - 5, goalHeight + (circleSize / 6));
+  text(scale[goalNote], width / 2 - 5, goalHeight + circleSize / 6);
   // Current Pitch Circle is Pink
   if (currentNote) {
-    currentHeight = map(scale.indexOf(currentNote), 0, scale.length - 1, 0, height);
+    currentHeight = map(
+      scale.indexOf(currentNote),
+      0,
+      scale.length - 1,
+      0,
+      height
+    );
     fill(255, 0, 255);
     ellipse(width / 2, currentHeight, circleSize, circleSize);
     fill(255);
-    text(scale[scale.indexOf(currentNote)], (width / 2) - 5, currentHeight + (circleSize / 6));
+    text(
+      scale[scale.indexOf(currentNote)],
+      width / 2 - 5,
+      currentHeight + circleSize / 6
+    );
     // If target is hit
-    if (dist(width / 2, currentHeight, width / 2, goalHeight) < circleSize / 2) {
+    if (
+      dist(width / 2, currentHeight, width / 2, goalHeight) <
+      circleSize / 2
+    ) {
       hit(goalHeight, scale[goalNote]);
     }
   }
@@ -78,7 +91,7 @@ function draw() {
 
 function gameReset() {
   goalNote = round(random(0, scale.length - 1));
-  select('#target').html(scale[goalNote])
+  select('#target').html(scale[goalNote]);
 }
 
 function hit(goalHeight, note) {
@@ -87,8 +100,8 @@ function hit(goalHeight, note) {
   fill(138, 43, 226);
   ellipse(width / 2, goalHeight, circleSize, circleSize);
   fill(255);
-  text(note, width / 2, goalHeight + (circleSize / 6));
+  text(note, width / 2, goalHeight + circleSize / 6);
   fill(50);
-  select('#hit').html('Nice!')
+  select('#hit').html('Nice!');
   gameReset();
 }

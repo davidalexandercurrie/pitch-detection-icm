@@ -14,8 +14,6 @@ const voiceLow = 100;
 const voiceHigh = 500;
 let audioStream;
 
-console.log('hi');
-
 // Circle variables
 let circleSize = 42;
 const scale = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
@@ -36,12 +34,15 @@ function setup() {
   createCanvas(410, 320);
   textCoordinates = [width / 2, 30];
   audioContext = getAudioContext();
+  getAudioContext().suspend();
   mic = new p5.AudioIn();
   mic.start(startPitch);
-  getAudioContext().suspend();
   osc = new p5.Oscillator('sine');
   osc2 = new p5.Oscillator('sine');
   osc3 = new p5.Oscillator('sine');
+  osc.start();
+  osc2.start();
+  osc3.start();
 }
 
 function startPitch() {
@@ -97,9 +98,6 @@ function draw() {
   }
 }
 
-function mousePressed() {
-  userStartAudio();
-  osc.start();
-  osc2.start();
-  osc3.start();
+function touchStarted() {
+  getAudioContext().resume();
 }

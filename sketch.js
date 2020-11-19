@@ -1,48 +1,48 @@
-// Copyright (c) 2019 ml5
-//
-// This software is released under the MIT License.
-// https://opensource.org/licenses/MIT
-
-/* ===
-ml5 Example
-A game using pitch Detection with CREPE
-=== */
-
 // Pitch variables
 let crepe;
 const voiceLow = 100;
 const voiceHigh = 500;
 let audioStream;
 
+let midiNum;
+
 // Circle variables
 let circleSize = 42;
 const scale = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 
 // Text variables
-let goalNote = 0;
 let currentNote = '';
 let currentText = '';
-let textCoordinates;
 
 // Osc variables
+let oscs = [];
 let currentFreq;
-let osc, oscFreq, oscAmp;
-let osc2, oscFreq2, oscAmp2;
-let osc3, oscFreq3, oscAmp3;
+let currentPitch;
+
+
+// Interval variales
+let buttons = [];
+const intervalCount = 10;
+let buttonSize;
+const intervalNames = ["-8","U","+m3","+M3","+d5","+P5","+d7","+m7","+M7","+8"];
+const halfSteps = [0,0,3,4,6,7,9,10,11,0];
+const intervalRatios = [.5,1,1.1892,1.2599,1.4142,1.4983,1.6818,1.7818,1.8897,2];
 
 function setup() {
-  createCanvas(410, 320);
-  textCoordinates = [width / 2, 30];
+  createCanvas(600, 600);
+  buttonSize = width/(intervalCount+2);
+
   audioContext = getAudioContext();
   getAudioContext().suspend();
+
   mic = new p5.AudioIn();
   mic.start(startPitch);
-  osc = new p5.Oscillator('sine');
-  osc2 = new p5.Oscillator('sine');
-  osc3 = new p5.Oscillator('sine');
-  osc.start();
-  osc2.start();
-  osc3.start();
+
+  for (let i = 0; i < intervalCount; i++) {
+    oscs.push(new p5.Oscillator('sine'));
+    oscs[i].start();
+    buttons.push(new Button(i));
+  }
 }
 
 function startPitch() {
@@ -56,10 +56,12 @@ function modelLoaded() {
 
 function getPitch() {
   pitch.getPitch(function (err, frequency) {
-    currentFreq = frequency;
-    if (frequency) {
-      let midiNum = freqToMidi(frequency);
-      currentNote = scale[midiNum % 12];
+    if (frequency && mic.getLevel() > .01) {
+      currentFreq = frequency;
+      select('#currentFreq').html(currentFreq);
+      midiNum = freqToMidi(frequency);
+      currentPitch = midiNum%12;
+      currentNote = scale[currentPitch];
       select('#currentNote').html(currentNote);
     }
     getPitch();
@@ -67,37 +69,128 @@ function getPitch() {
 }
 
 function draw() {
-  osc.freq(currentFreq);
-  osc2.freq((currentFreq * 3) / 2);
-  osc3.freq((currentFreq * 5) / 4);
   background(240);
-  // Goal Circle is Blue
-  noStroke();
-  fill(0, 0, 255);
-  goalHeight = map(goalNote, 0, scale.length - 1, 0, height);
-  ellipse(width / 2, goalHeight, circleSize, circleSize);
-  fill(255);
-  text(scale[goalNote], width / 2 - 5, goalHeight + circleSize / 6);
-  // Current Pitch Circle is Pink
-  if (currentNote) {
-    currentHeight = map(
-      scale.indexOf(currentNote),
-      0,
-      scale.length - 1,
-      0,
-      height
-    );
-    fill(255, 0, 255);
-    ellipse(width / 2, currentHeight, circleSize, circleSize);
-    fill(255);
-    text(
-      scale[scale.indexOf(currentNote)],
-      width / 2 - 5,
-      currentHeight + circleSize / 6
-    );
+  drawStaff();
+  select('#micVol').html(mic.getLevel());
+  for (let i = 0; i < buttons.length; i++) {
+    buttons[i].drawButton();
+    buttons[i].noteVal = (currentPitch+halfSteps[buttons[i].index])%12;
+    if (buttons[i].pressed && mic.getLevel() > .006) {
+      oscs[i].freq(currentFreq*buttons[i].interval);
+      oscs[i].amp(mic.getLevel()*8);
+      buttons[i].drawNote();
+    } else {
+      oscs[i].amp(0);
+    }
+    
   }
 }
 
-function touchStarted() {
-  getAudioContext().resume();
+class Button {
+  constructor(indexNum) {
+    this.index = indexNum;
+    this.name = intervalNames[this.index]
+    this.xPos = buttonSize+buttonSize*this.index;
+    this.yPos = buttonSize;
+    this.pressed = false;
+    this.interval = intervalRatios[this.index];
+  }
+
+  drawButton() {
+    if (this.pressed) {
+      fill(255,150,150);
+    } else {
+      fill(255);
+    }
+    strokeWeight(3);
+    rect(this.xPos,this.yPos,buttonSize,buttonSize);
+    textSize(20);
+    fill(0);
+    text(this.name, this.xPos+5,this.yPos+buttonSize/2);
+  }
+
+  drawNote() {
+    text(this.noteVal,width*3/8,height/2);
+    let defaultY = height/3+250;
+    let defaultX = width*3/8;
+    noFill();
+    strokeWeight(5);
+    switch (this.noteVal) {
+      case 0:
+        circle(defaultX, defaultY,25);
+        line(defaultX-50,defaultY,defaultX+50,defaultY);
+        break;
+      case 1:
+        circle(defaultX, defaultY,25);
+        line(defaultX-50,defaultY,defaultX+50,defaultY);
+        fill(0);
+        textSize(50);
+        text("#",defaultX-60,defaultY+15);
+        break;
+      case 2:
+        circle(defaultX, defaultY-25,25);
+        break;
+      case 3:
+        circle(defaultX, defaultY-25,25);
+        fill(0);
+        textSize(50);
+        text("#",defaultX-60,defaultY-10);
+        break;
+      case 4:
+        circle(defaultX, defaultY-50,25);
+        break;
+      case 5:
+        circle(defaultX, defaultY-75,25);
+        break;
+      case 6:
+        circle(defaultX, defaultY-75,25);
+        fill(0);
+        textSize(50);
+        text("#",defaultX-60,defaultY-60);
+        break;
+      case 7:
+        circle(defaultX, defaultY-100,25);
+        break;
+      case 8:
+        circle(defaultX, defaultY-100,25);
+        fill(0);
+        textSize(50);
+        text("#",defaultX-60,defaultY-85);
+        break;
+      case 9:
+        circle(defaultX, defaultY-125,25);
+        break;
+      case 10:
+        circle(defaultX, defaultY-125,25);
+        fill(0);
+        textSize(50);
+        text("#",defaultX-60,defaultY-110);
+        break;
+      case 11:
+        circle(defaultX, defaultY-150,25);
+        break;
+    }
+    
+  }
+
+  checkPress() {
+    let xPress = mouseX > this.xPos && mouseX < this.xPos+buttonSize;
+    let yPress = mouseY > this.yPos && mouseY < this.yPos+buttonSize;
+    if (yPress && xPress) {
+      this.pressed = !this.pressed;
+    }
+  }
+}
+
+function mousePressed() {
+  getAudioContext().resume(); 
+  for (let i = 0; i < buttons.length; i++) {
+    buttons[i].checkPress();
+  }
+}
+
+function drawStaff() {
+  for (let i = 0; i < 5; i++) {
+    line(width/4,height/3+50*i,width/2,height/3+50*i);
+  }
 }
